@@ -1,5 +1,8 @@
 package yliu.andriod_player;
 
+import android.net.Uri;
+import android.widget.MediaController;
+import android.widget.VideoView;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -12,6 +15,11 @@ public class MainActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        VideoView vidView = (VideoView)findViewById(R.id.myVideo);
+        String vidAddress = "http://192.168.33.169/mediafile/%e5%9b%bd%e4%ba%a7%e9%9b%b6%e9%9b%b6%e6%bc%86.mkv";
+        Uri vidUri = Uri.parse(vidAddress);
+        vidView.setVideoURI(vidUri);
+        vidView.start();
     }
 
 
