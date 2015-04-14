@@ -5,14 +5,25 @@ import android.hardware.usb.UsbAccessory;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Environment;
 import android.widget.MediaController;
+import android.widget.TextView;
 import android.widget.VideoView;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.util.Log;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.StatusLine;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
+import org.w3c.dom.Document;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -26,9 +37,13 @@ import java.util.List;
 import java.io.File;
 import java.io.FilenameFilter;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
 
 public class MainActivity extends ActionBarActivity {
     private static final String ACTIVITY_TAG="LogDemo";
+    private TextView tv;
     public class MyFileFilter implements FilenameFilter {
 
         @Override
@@ -43,9 +58,22 @@ public class MainActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        this.tv = (TextView) findViewById(R.id.tv);
+        RequestTask request = new RequestTask();
+        request.execute("http://192.168.33.169/sort/liu.xml"
+        );
+
+        int max = 0;
+
+
         VideoView vidView = (VideoView)findViewById(R.id.myVideo);
         File[] file1 = null;
-         int max = 0;
+
+        //
+
+
+
+
         //
         File vSDCard = null;
         UsbManager manager = (UsbManager) getSystemService(Context.USB_SERVICE);
@@ -130,10 +158,40 @@ public class MainActivity extends ActionBarActivity {
         Uri vidUri = Uri.parse(usbAddress);
         vidView.setVideoURI(vidUri);
         Log.e(MainActivity.ACTIVITY_TAG, ""+Thread.currentThread().getStackTrace()[2].getLineNumber());
-        //vidView.start();
+        vidView.start();
+
     }
 
+    public class RequestTask extends AsyncTask<String, String, String> {
 
+        @Override
+        protected String doInBackground(String... params) {
+            this.publishProgress(null);
+            try {
+                HttpGet httpget = new HttpGet(params[0]);
+                HttpClient client = new DefaultHttpClient();
+                HttpResponse response = client.execute(httpget);
+                HttpEntity resEntityGet = response.getEntity();
+                if (resEntityGet != null) {
+                    return EntityUtils.toString(resEntityGet, "utf-8");
+                }
+
+            } catch (Exception e) {
+                return e.toString();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String text){
+            MainActivity.this.tv.setText(text);
+        }
+
+        @Override
+        protected void onProgressUpdate(String... result){
+            MainActivity.this.tv.setText("Start");
+        }
+    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
